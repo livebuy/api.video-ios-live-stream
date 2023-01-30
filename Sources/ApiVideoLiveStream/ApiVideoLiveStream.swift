@@ -292,7 +292,7 @@ public class ApiVideoLiveStream {
                 return
             }
             // capture.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto // Add latency to video
-            // capture.isVideoMirrored = self.cameraPosition == .front // This transition is visible and does not bring a good user experience
+            capture.isVideoMirrored = self.cameraPosition == .front // This transition is visible and does not bring a good user experience
 
             guard let device = capture.device else {
                 return
