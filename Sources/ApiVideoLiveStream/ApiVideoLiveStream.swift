@@ -13,6 +13,8 @@ import VideoToolbox
 public class ApiVideoLiveStream {
     private let rtmpStream: RTMPStream
     private let rtmpConnection = RTMPConnection()
+    
+    private var mthkView: MTHKView?
 
     private var streamKey: String = ""
     private var url: String = ""
@@ -232,6 +234,8 @@ public class ApiVideoLiveStream {
 
         width.priority = .defaultHigh
         height.priority = .defaultHigh
+        
+        self.mthkView = mthkView
 
         NSLayoutConstraint.activate([
             maxWidth, maxHeight, width, height, centerX, centerY
@@ -292,7 +296,7 @@ public class ApiVideoLiveStream {
                 return
             }
             // capture.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto // Add latency to video
-            capture.isVideoMirrored = self.cameraPosition == .front // This transition is visible and does not bring a good user experience
+            self.mthkView?.isMirrored = self.cameraPosition == .front
 
             guard let device = capture.device else {
                 return
