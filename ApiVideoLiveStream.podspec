@@ -2,7 +2,7 @@
 
 Pod::Spec.new do |spec|
   spec.name         = "ApiVideoLiveStream"
-  spec.version      = "1.3.3"
+  spec.version      = "1.3.4"
   spec.summary      = "The api.video live stream framework allow easy integration of a live stream broadcast into your application."
 
   
@@ -24,6 +24,6 @@ Pod::Spec.new do |spec|
   spec.source_files  = "Sources/**/*.{h,m,swift}"
   spec.exclude_files = "Sources/Exclude"
 
-  spec.dependency "HaishinKit", "1.4.2"
+  spec.dependency "HaishinKit", "1.4.3"
 
 end

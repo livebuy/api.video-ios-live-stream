@@ -285,6 +285,11 @@ public class ApiVideoLiveStream {
 
     private func attachCamera(_ camera: AVCaptureDevice?) {
         self.lastCamera = camera
+        if let camera = camera {
+            // rtmpStream.videoCapture(for: 0)?.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto // Add latency to video
+            rtmpStream.videoCapture(for: 0)?.isVideoMirrored = camera.position == .front
+        }
+
         self.rtmpStream.attachCamera(camera) { error in
             print("======== Camera error ==========")
             print(error)
@@ -295,7 +300,7 @@ public class ApiVideoLiveStream {
             guard let capture = self.rtmpStream.videoCapture(for: 0) else {
                 return
             }
-            // capture.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto // Add latency to video
+
             self.mthkView?.isMirrored = self.cameraPosition == .front
 
             guard let device = capture.device else {
