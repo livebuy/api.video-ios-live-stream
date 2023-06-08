@@ -445,8 +445,8 @@ public class ApiVideoLiveStream {
             self.rtmpStream.videoOrientation = orientation
             do {
                 let resolution = try Resolution.getResolution(
-                    width: self.rtmpStream.videoSettings.videoSize.width,
-                    height: self.rtmpStream.videoSettings.videoSize.height
+                    width: Int(self.rtmpStream.videoSettings.videoSize.width),
+                    height: Int(self.rtmpStream.videoSettings.videoSize.height)
                 )
                 self.rtmpStream.videoSettings = [
                     .width: self.rtmpStream.videoOrientation.isLandscape ?
