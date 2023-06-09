@@ -448,12 +448,11 @@ public class ApiVideoLiveStream {
                     width: Int(self.rtmpStream.videoSettings.videoSize.width),
                     height: Int(self.rtmpStream.videoSettings.videoSize.height)
                 )
-                self.rtmpStream.videoSettings = [
-                    .width: self.rtmpStream.videoOrientation.isLandscape ?
-                    resolution.size.width : resolution.size.height,
-                    .height: self.rtmpStream.videoOrientation.isLandscape ?
-                    resolution.size.height : resolution.size.width
-                ]
+                self.rtmpStream.videoSettings = VideoCodecSettings(
+                    videoSize: .init(width: Int32(self.rtmpStream.videoOrientation.isLandscape ?
+                                                  resolution.size.width : resolution.size.height), height: Int32(self.rtmpStream.videoOrientation.isLandscape ?
+                                                                                                                 resolution.size.height : resolution.size.width)))
+                
             } catch {
                 print("Failed to set resolution to orientation \(orientation)")
             }
