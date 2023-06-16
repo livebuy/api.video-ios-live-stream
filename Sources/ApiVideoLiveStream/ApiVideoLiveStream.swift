@@ -25,6 +25,23 @@ public class ApiVideoLiveStream {
     /// The delegate of the ApiVideoLiveStream
     public weak var delegate: ApiVideoLiveStreamDelegate?
     
+    //        public var videoBitrate: Int = Int(VideoCodecSettings.default.bitRate)
+    
+    public var videoBitrate: Int {
+        get {
+            Int(self.rtmpStream.videoSettings.bitRate)
+        }
+        set(newValue) {
+            self.rtmpStream.videoSettings.bitRate = UInt32(newValue)
+        }
+    }
+    
+    private let rtmpConnectionDelegate = RTMPAdaptiveBitrateHandling(
+        startBitrate: 2_000_000,
+        targetBitrate: 2_000_000,
+        cooldownPeriod: 10.0
+    )
+    
     // swiftlint:disable force_cast
     ///  Getter and Setter for an AudioConfig
     public var audioConfig: AudioConfig {
@@ -52,17 +69,7 @@ public class ApiVideoLiveStream {
         }
         set {
             self.prepareVideo(videoConfig: newValue)
-        }
-    }
-    
-    // swiftlint:disable force_cast
-    /// Getter and Setter for the Bitrate number for the video
-    public var videoBitrate: Int {
-        get {
-            Int(self.rtmpStream.videoSettings.bitRate)
-        }
-        set(newValue) {
-            self.rtmpStream.videoSettings.bitRate = UInt32(newValue)
+            self.rtmpConnectionDelegate.resetTargetBitrate(bitRate: UInt32(newValue.bitrate))
         }
     }
     
@@ -157,7 +164,7 @@ public class ApiVideoLiveStream {
             videoSize: .init(width: 1280, height: 720)
         )
         
-        self.rtmpConnection.delegate = self
+        self.rtmpConnection.delegate = self.rtmpConnectionDelegate
         
 #if os(iOS)
         if let orientation = DeviceUtil.videoOrientation(by: UIApplication.shared.statusBarOrientation) {
@@ -328,10 +335,9 @@ public class ApiVideoLiveStream {
             videoSize: .init(width: Int32(self.rtmpStream.videoOrientation.isLandscape ? videoConfig.resolution.size.width : videoConfig
                 .resolution.size.height), height: Int32(self.rtmpStream.videoOrientation.isLandscape ? videoConfig.resolution.size.height : videoConfig
                     .resolution.size.width)),
-            profileLevel: kVTProfileLevel_H264_Baseline_5_2 as String,
+            profileLevel: kVTProfileLevel_H264_Main_AutoLevel as String,
             bitRate: UInt32(videoConfig.bitrate),
             maxKeyFrameIntervalDuration: Int32(videoConfig.gopDuration)
-            
         )
         
         self.isVideoConfigured = true
@@ -409,6 +415,7 @@ public class ApiVideoLiveStream {
         {
             return
         }
+        
         switch code {
         case RTMPConnection.Code.connectSuccess.rawValue:
             self.delegate?.connectionSuccess()
@@ -452,7 +459,6 @@ public class ApiVideoLiveStream {
                     videoSize: .init(width: Int32(self.rtmpStream.videoOrientation.isLandscape ?
                                                   resolution.size.width : resolution.size.height), height: Int32(self.rtmpStream.videoOrientation.isLandscape ?
                                                                                                                  resolution.size.height : resolution.size.width)))
-                
             } catch {
                 print("Failed to set resolution to orientation \(orientation)")
             }
@@ -488,25 +494,6 @@ public protocol ApiVideoLiveStreamDelegate: AnyObject {
 extension AVCaptureVideoOrientation {
     var isLandscape: Bool {
         self == .landscapeLeft || self == .landscapeRight
-    }
-}
-
-extension ApiVideoLiveStream: RTMPConnectionDelegate {
-    public func connection(_ connection: RTMPConnection, publishInsufficientBWOccured stream: RTMPStream) {
-        videoBitrate -= 32 * 1000
-        stream.videoSettings.bitRate = UInt32(max(videoBitrate, 64 * 1000))
-    }
-    
-    public func connection(_ connection: RTMPConnection, publishSufficientBWOccured stream: RTMPStream) {
-        videoBitrate += 32 * 1000
-        stream.videoSettings.bitRate = min(UInt32(videoBitrate), VideoCodecSettings.default.bitRate)
-    }
-    
-    public func connection(_ connection: RTMPConnection, updateStats stream: RTMPStream) {
-    }
-    
-    func connection(_ connection: RTMPConnection, didClear stream: RTMPStream) {
-        videoBitrate = Int(VideoCodecSettings.default.bitRate)
     }
 }
 
