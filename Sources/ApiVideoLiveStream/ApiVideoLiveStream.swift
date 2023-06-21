@@ -37,8 +37,8 @@ public class ApiVideoLiveStream {
     }
     
     private let rtmpConnectionDelegate = RTMPAdaptiveBitrateHandling(
-        startBitrate: 2_000_000,
-        targetBitrate: 2_000_000,
+        startBitrate: 3500000,
+        targetBitrate: 5000000,
         cooldownPeriod: 10.0
     )
     
@@ -160,9 +160,9 @@ public class ApiVideoLiveStream {
         self.rtmpStream = RTMPStream(connection: self.rtmpConnection)
         
         // Force default resolution because HK default resolution is not supported (480x272)
-        self.rtmpStream.videoSettings = VideoCodecSettings(
-            videoSize: .init(width: 1280, height: 720)
-        )
+        //        self.rtmpStream.videoSettings = VideoCodecSettings(
+        //            videoSize: .init(width: 1280, height: 720)
+        //        )
         
         self.rtmpConnection.delegate = self.rtmpConnectionDelegate
         
@@ -420,6 +420,8 @@ public class ApiVideoLiveStream {
         case RTMPConnection.Code.connectSuccess.rawValue:
             self.delegate?.connectionSuccess()
             self.rtmpStream.publish(self.streamKey)
+            //            self.videoBitrate = 2 * 1024 * 1024
+            //            self.rtmpConnectionDelegate.resetToTargetBitrate()
             
         case RTMPConnection.Code.connectFailed.rawValue:
             self.delegate?.connectionFailed(code)
@@ -455,10 +457,9 @@ public class ApiVideoLiveStream {
                     width: Int(self.rtmpStream.videoSettings.videoSize.width),
                     height: Int(self.rtmpStream.videoSettings.videoSize.height)
                 )
-                self.rtmpStream.videoSettings = VideoCodecSettings(
-                    videoSize: .init(width: Int32(self.rtmpStream.videoOrientation.isLandscape ?
-                                                  resolution.size.width : resolution.size.height), height: Int32(self.rtmpStream.videoOrientation.isLandscape ?
-                                                                                                                 resolution.size.height : resolution.size.width)))
+                self.rtmpStream.videoSettings.videoSize = .init(width: Int32(self.rtmpStream.videoOrientation.isLandscape ?
+                                                                             resolution.size.width : resolution.size.height), height: Int32(self.rtmpStream.videoOrientation.isLandscape ?
+                                                                                                                                            resolution.size.height : resolution.size.width))
             } catch {
                 print("Failed to set resolution to orientation \(orientation)")
             }
