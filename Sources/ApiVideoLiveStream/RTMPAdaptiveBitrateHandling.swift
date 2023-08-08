@@ -49,7 +49,8 @@ class RTMPAdaptiveBitrateHandling: NSObject, RTMPConnectionDelegate {
     var currentStreamingProfile: StreamingProfile
     
     let movingAveragePeriod: Int = 10  // last 10 measurements
-    var pastBytesOutPerSecond: [Int32] = []
+    var pastBitsOutPerSecond: [Int32] = []
+    
     
     init(startBitrate: UInt32, targetBitrate: UInt32, cooldownPeriod: TimeInterval, lowPassFilterScalar: Double = 0.08) {
         self.cooldownPeriod = cooldownPeriod
@@ -61,17 +62,17 @@ class RTMPAdaptiveBitrateHandling: NSObject, RTMPConnectionDelegate {
         self.currentStreamingProfile = findSuitableStreamingProfile(startBitrate)
     }
     
-    private func updatePastBytesOutPerSecond(_ newBytesOutPerSecond: Int32) {
-        if pastBytesOutPerSecond.count >= movingAveragePeriod {
-            pastBytesOutPerSecond.removeFirst()
+    private func updatePastBitsOutPerSecond(_ newBitsOutPerSecond: Int32) {
+        if self.pastBitsOutPerSecond.count >= movingAveragePeriod {
+            self.pastBitsOutPerSecond.removeFirst()
         }
         
-        pastBytesOutPerSecond.append(newBytesOutPerSecond)
+        self.pastBitsOutPerSecond.append(newBitsOutPerSecond)
     }
     
     private func calculateMovingAverage(_ newBytesOutPerSecond: Int32) -> Double {
-        let sum = pastBytesOutPerSecond.reduce(0, { x, y in x + Int(y) })
-        let average: Double = Double(sum) / Double(pastBytesOutPerSecond.count)
+        let sum = self.pastBitsOutPerSecond.reduce(0, { x, y in x + Int(y) })
+        let average: Double = Double(sum) / Double(self.pastBitsOutPerSecond.count)
         
         return average
     }
@@ -95,17 +96,14 @@ class RTMPAdaptiveBitrateHandling: NSObject, RTMPConnectionDelegate {
         self.bandwidth = Double(bitRate)
         self.threshold = Double(bitRate) * 0.75
         self.targetBitrate = bitRate
-        self.pastBytesOutPerSecond = []
+        self.pastBitsOutPerSecond = []
     }
     
     public func connection(_ connection: RTMPConnection, updateStats stream: RTMPStream) {
         let currentBps = Double(connection.currentBytesOutPerSecond) * 8
-        print("current bitrate: \(Int(currentBps / 1000)), bandwidth: \(Int(bandwidth / 1000))")
-        bandwidth = currentBps * lowPassFilterScalar + bandwidth * (1 - lowPassFilterScalar)
-        // adaptive threshold - making threshold as 75% of the bandwidth
-        threshold = bandwidth * 0.75
+        print("current bitrate: \(Int(currentBps / 1000))")
         
-        self.updatePastBytesOutPerSecond(Int32(currentBps))
+        self.updatePastBitsOutPerSecond(Int32(currentBps))
     }
     
     public func connection(_ connection: RTMPConnection, publishSufficientBWOccured stream: RTMPStream) {
@@ -124,9 +122,11 @@ class RTMPAdaptiveBitrateHandling: NSObject, RTMPConnectionDelegate {
     }
     
     public func connection(_ connection: RTMPConnection, publishInsufficientBWOccured stream: RTMPStream) {
-        if currentDateIsInCooldownPeriod(lastAdjustmentDate: self.lastAdjustmentTime, cooldownPeriod: self.cooldownPeriod) {
-            return
-        }
+//        if currentDateIsInCooldownPeriod(lastAdjustmentDate: self.lastAdjustmentTime, cooldownPeriod: self.cooldownPeriod) {
+//            return
+//        }
+        
+        
         
         let currentBps = connection.currentBytesOutPerSecond * 8
         let movingAverage = calculateMovingAverage(currentBps)
